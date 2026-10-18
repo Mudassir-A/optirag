@@ -1,0 +1,89 @@
+{
+  "config": {
+    "small_model": "openai/gpt-oss-20b",
+    "large_model": "openai/gpt-oss-120b",
+    "cache_threshold": 0.9,
+    "router_mode": "rules",
+    "router_threshold": 2.0,
+    "escalate_below": 0.5,
+    "retrieval_k": 3,
+    "requests": 9,
+    "unique": 9,
+    "repeat": 0
+  },
+  "baseline": {
+    "requests": 9,
+    "errors": 1,
+    "cost_total_usd": 0.00225015,
+    "cost_per_request_usd": 0.0002500166666666666,
+    "cache_hit_rate": 0.0,
+    "escalation_rate": 0.0,
+    "p50_ms": 785.9373884984961,
+    "p95_ms": 125660.74673420089,
+    "quality": 0.8888888888888888,
+    "retrieval_hit_rate": 0.8888888888888888,
+    "routes": {
+      "large": 8,
+      "error": 1
+    }
+  },
+  "optimized": {
+    "requests": 9,
+    "errors": 5,
+    "cost_total_usd": 0.0009604500000000001,
+    "cost_per_request_usd": 0.00010671666666666667,
+    "cache_hit_rate": 0.0,
+    "escalation_rate": 0.2222222222222222,
+    "p50_ms": 2165.139550997992,
+    "p95_ms": 3167.1803560984695,
+    "quality": 0.4444444444444444,
+    "retrieval_hit_rate": 0.4444444444444444,
+    "routes": {
+      "error": 5,
+      "escalated": 2,
+      "small": 2
+    }
+  },
+  "unique_only": {
+    "baseline": {
+      "requests": 9,
+      "errors": 1,
+      "cost_total_usd": 0.00225015,
+      "cost_per_request_usd": 0.0002500166666666666,
+      "cache_hit_rate": 0.0,
+      "escalation_rate": 0.0,
+      "p50_ms": 785.9373884984961,
+      "p95_ms": 125660.74673420089,
+      "quality": 0.8888888888888888,
+      "retrieval_hit_rate": 0.8888888888888888,
+      "routes": {
+        "large": 8,
+        "error": 1
+      }
+    },
+    "optimized": {
+      "requests": 9,
+      "errors": 5,
+      "cost_total_usd": 0.0009604500000000001,
+      "cost_per_request_usd": 0.00010671666666666667,
+      "cache_hit_rate": 0.0,
+      "escalation_rate": 0.2222222222222222,
+      "p50_ms": 2165.139550997992,
+      "p95_ms": 3167.1803560984695,
+      "quality": 0.4444444444444444,
+      "retrieval_hit_rate": 0.4444444444444444,
+      "routes": {
+        "error": 5,
+        "escalated": 2,
+        "small": 2
+      }
+    }
+  },
+  "delta": {
+    "cost_reduction_pct": 57.31617892140524,
+    "cost_reduction_unique_only_pct": 57.31617892140524,
+    "p50_change_pct": 175.48499189412655,
+    "p95_change_pct": -97.47957859680896,
+    "quality_delta": -0.4444444444444444
+  }
+}
