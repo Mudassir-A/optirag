@@ -5,6 +5,9 @@ from dataclasses import dataclass
 
 from .config import settings, token_cost
 
+import litellm
+
+litellm.suppress_debug_info = True
 
 class LLMError(RuntimeError):
     pass
