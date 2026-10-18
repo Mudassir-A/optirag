@@ -6,7 +6,7 @@ from typing import List, Literal, TypedDict
 
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
-from langchain_community.document_loaders import PyPDFLoader
+from pypdf import PdfReader
 from langchain_core.documents import Document
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -30,6 +30,19 @@ class RAGState(TypedDict):
     retries: int
 
 
+def load_pdf_pages(path: Path) -> List[Document]:
+    """Load a PDF into one Document per non-empty page."""
+    reader = PdfReader(str(path))
+    docs: List[Document] = []
+    for i, page in enumerate(reader.pages):
+        text = (page.extract_text() or "").strip()
+        if text:
+            docs.append(
+                Document(page_content=text, metadata={"source": str(path), "page": i})
+            )
+    return docs
+
+
 def build_vectorstore(embeddings: HuggingFaceEmbeddings) -> Chroma:
     """Create or reuse the persisted Chroma store (no duplicate ingestion)."""
     PERSIST_DIR.mkdir(parents=True, exist_ok=True)
@@ -38,14 +51,14 @@ def build_vectorstore(embeddings: HuggingFaceEmbeddings) -> Chroma:
         embedding_function=embeddings,
         persist_directory=str(PERSIST_DIR),
     )
-    if store._collection.count() > 0:
-        logger.info("Reusing existing collection (%d chunks)", store._collection.count())
+    if store.get(limit=1)["ids"]:
+        logger.info("Reusing existing collection")
         return store
 
     if not PDF_PATH.exists():
         raise FileNotFoundError(f"PDF not found: {PDF_PATH}")
 
-    pages = PyPDFLoader(str(PDF_PATH)).load()
+    pages = load_pdf_pages(PDF_PATH)
     chunks = RecursiveCharacterTextSplitter(
         chunk_size=1000, chunk_overlap=200
     ).split_documents(pages)
@@ -85,9 +98,11 @@ def build_graph(llm: ChatGroq, retriever):
 
     def generate_answer(state: RAGState) -> dict:
         context = "\n\n".join(
-            f"Page {d.metadata['page'] + 1}:\n{d.page_content}"
-            if isinstance(d.metadata.get("page"), int)
-            else f"Page N/A:\n{d.page_content}"
+            (
+                f"Page {d.metadata['page'] + 1}:\n{d.page_content}"
+                if isinstance(d.metadata.get("page"), int)
+                else f"Page N/A:\n{d.page_content}"
+            )
             for d in state["documents"]
         )
         prompt = (
@@ -120,7 +135,9 @@ def build_graph(llm: ChatGroq, retriever):
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0)
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
     retriever = build_vectorstore(embeddings).as_retriever(
         search_type="similarity", search_kwargs={"k": 3}
     )
