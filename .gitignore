@@ -232,3 +232,4 @@ __marimo__/
 
 logs/
 chroma_db/
+cache_db/
